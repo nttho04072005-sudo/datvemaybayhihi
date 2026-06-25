@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống đặt vé máy bay trực tuyến</title>
+    <style>
+        /* --- CSS CHO KHU VỰC ĐĂNG NHẬP / ĐĂNG KÝ --- */
+        .auth-buttons { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; gap: 12px; }
+        .btn-register, .btn-login { padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; font-family: Arial, sans-serif; }
+        .btn-register { background-color: rgba(255, 255, 255, 0.9); color: #0068ff; border: 2px solid #0068ff; }
+        .btn-register:hover { background-color: #0068ff; color: white; }
+        .btn-login { background-color: #0068ff; color: white; border: 2px solid #0068ff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-login:hover { background-color: #0056d6; border-color: #0056d6; transform: translateY(-2px); }
+        .logged-in-user { background: rgba(255,255,255,0.95); padding: 10px 20px; border-radius: 20px; font-weight: bold; color: #0068ff; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1px solid #cce0ff; display: flex; align-items: center; gap: 8px; }
+
+        /* --- CSS CHO THANH MENU BÊN TRÁI --- */
+        .open-sidebar-btn { position: fixed; top: 20px; left: 20px; z-index: 999; background-color: #0068ff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .open-sidebar-btn:hover { background-color: #0056d6; }
+        .sidebar { position: fixed; top: 0; left: -350px; width: 300px; height: 100%; background-color: #53e4fa; box-shadow: 5px 0 15px rgba(0,0,0,0.2); z-index: 10000; transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 20px; box-sizing: border-box; font-family: Arial, sans-serif; overflow-y: auto; }
+        .close-sidebar-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #555; transition: color 0.2s; }
+        .close-sidebar-btn:hover { color: red; }
+        .sidebar-section { margin-top: 40px; }
+        .sidebar-section h3 { font-size: 16px; color: #222; margin-bottom: 10px; display: flex; align-items: center; }
+        .sidebar-section h3 .icon { margin-right: 10px; font-size: 20px; }
+        .sidebar-section hr { border: 0; border-top: 1px solid #94b8bc; margin-bottom: 15px; }
+        .sidebar-section a { display: block; text-decoration: none; color: #444; margin-bottom: 18px; font-size: 15px; transition: all 0.2s; }
+        .sidebar-section a:hover { color: #0068ff; transform: translateX(5px); }
+
+        body { background-image: url('anhnen.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; font-family: Arial, sans-serif; }
+        .container { max-width: 800px; margin: auto; background: rgb(247, 184, 231); padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; color: #14181e; }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-box input, .search-box select, .search-box button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; flex: 1; }
+        .search-box button { background-color: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .search-box button:hover { background-color: #003d82; }
+        
+        .flight-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background: white; display: flex; flex-direction: column; gap: 10px; }
+        
+        .btn-book { background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        
+        .adv-banner { width: 100%; max-height: 150px; overflow: hidden; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .adv-banner img { width: 100%; height: auto; object-fit: cover; }
+
+        .zalo-float { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background-color: #0068ff; border-radius: 50%; box-shadow: 2px 2px 10px rgba(0,0,0,0.3); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: transform 0.3s ease; }
+        .zalo-float:hover { transform: scale(1.1); }
+        .zalo-float img { width: 35px; height: 35px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 10001; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 400px; max-width: 90%; }
+        .modal-content h3 { margin-top: 0; color: #0068ff; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .modal-content p { margin: 10px 0; font-size: 15px; }
+        
+        .input-form-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding: 15px; background: #f0f8ff; border-radius: 8px; border: 1px solid #cce0ff; }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .input-row input, .input-row select { padding: 10px; flex: 1; border: 1px solid #ccc; border-radius: 4px; min-width: 150px; box-sizing: border-box; }
+
+        .flatpickr-day {
+            height: 48px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            line-height: 1.2 !important;
+        }
+        .flatpickr-day.flatpickr-disabled { color: #0b0202 !important; }
+    </style>
+
+    <script src="https://unpkg.com/lunar-javascript/lunar.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+    <div class="auth-buttons" id="auth-section">
+        <button class="btn-register" onclick="showRegister()">Đăng ký</button>
+        <button class="btn-login" onclick="showLogin()">Đăng nhập</button>
+    </div>
+
+    <div class="container">
+        <div class="adv-banner">
+            <a href="https://daotao.utt.edu.vn/" target="_blank">
+                <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=1000" alt="Banner Quảng Cáo">
+            </a>
+        </div>
+        <h1>🛬 Đặt Vé Máy Bay Trực Tuyến (BTL nhóm 9)🌹</h1>
+        
+        <div class="search-box">
+            <select id="from">
+                <option value="">Điểm đi</option>
+                <option value="HAN">Hà Nội (HAN)</option>
+                <option value="SGN">Hồ Chí Minh (SGN)</option>
+                <option value="DAD">Đà Nẵng (DAD)</option>
+            </select>
+            <select id="to">
+                <option value="">Điểm đến</option>
+                <option value="HAN">Hà Nội (HAN)</option>
+                <option value="SGN">Hồ Chí Minh (SGN)</option>
+                <option value="DAD">Đà Nẵng (DAD)</option>
+            </select>
+            
+            <div style="flex: 1;">
+                <input type="text" id="date" placeholder="Chọn ngày bay" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; background-color: white;">
+            </div>
+            
+            <button onclick="searchFlights()">Tìm chuyến bay🔍</button>
+        </div>
+
+        <h2>Kết quả tìm kiếm🚀</h2>
+        <div id="results">🔍Vui lòng nhập thông tin tìm kiếm...</div>
+        
+        <div id="payment-section" style="display: none; text-align: center; margin-top: 20px; padding: 20px; border: 2px dashed #28a745; border-radius: 10px; background-color: #fafffa;">
+            <h2 style="color: #28a745;">🎉 Đặt chỗ thành công!</h2>
+            <p>Mã đặt vé của bạn: <strong id="pay-booking-id" style="color: red; font-size: 1.2em;"></strong></p>
+            <p>Email nhận vé: <strong id="pay-email" style="color: blue;"></strong></p>
+            <p>Tổng tiền thanh toán: <strong id="pay-amount" style="color: red; font-size: 1.5em;"></strong></p>
+
+            <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px auto; max-width: 300px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <h3 style="margin-top: 0;">Quét mã QR để thanh toán</h3>
+                <img id="qr-image" src="" alt="Mã QR Thanh toán động" style="width: 220px; height: auto; margin-bottom: 10px; border: 1px solid #eee; padding: 5px; border-radius: 8px;">
+                <p style="margin-bottom: 5px;">Ngân hàng: <strong>MB BANK</strong></p>
+                <p style="margin-bottom: 5px;">Chủ tài khoản: <strong>NGUYEN TIEN THO</strong></p>
+                <p style="margin-bottom: 5px;">STK: <strong style="color: blue;">00407200588888</strong></p>
+                <p>Nội dung: <strong id="pay-content" style="color: blue;"></strong></p>
+            </div>
+
+            <button onclick="completePayment()" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px;">
+                ✅ Tôi đã thanh toán (Xác nhận)
+            </button>
+            <button onclick="cancelPayment()" style="background-color: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; width: 100%;">
+                Thanh toán sau (Giữ chỗ)
+            </button>
+        </div>
+
+        <div id="success-ticket-section" style="display: none; margin-top: 20px; padding: 25px; border: 2px solid #28a745; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 15px rgba(40,167,69,0.15); font-family: Arial, sans-serif;">
+            <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 50px;">🎉</span>
+            <h2 style="color: #28a745; margin: 5px 0 0 0; font-size: 22px;">XÁC NHẬN XUẤT VÉ THÀNH CÔNG!</h2>
+            <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">Hệ thống bưu điện đã gửi E-Ticket chi tiết vào Email của bạn.</p>
+            </div>
+            <div id="ticket-receipt-content"></div>
+
+               <button onclick="resetUIFromSuccess()" style="background-color: #0068ff; color: white; padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; transition: 0.2s;">
+              🏠 Quay lại trang chủ đặt vé
+           </button>
+         </div>
+    </div>
+
+       <div id="review-ticket-section" style="display: none; margin-top: 20px; padding: 25px; border: 2px solid #0068ff; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 15px rgba(0,104,255,0.1); font-family: Arial, sans-serif;">
+        <h2 style="color: #0068ff; text-align: center; margin-top: 0; border-bottom: 2px solid #edf2f7; padding-bottom: 12px; font-size: 22px;">📋 XÁC NHẬN HÀNH TRÌNH & THÔNG TIN ĐẶT VÉ</h2>
+    
+        <div id="review-ticket-content"></div>
+    
+        <div style="display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
+        <button onclick="backToEditBooking()" style="background: #e2e8f0; color: #4a5568; border: none; padding: 12px 20px; flex: 1; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; min-width: 140px;">
+            ⬅️ Quay lại sửa thông tin
+        </button>
+        <button onclick="submitBooking()" style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; border: none; padding: 12px 20px; flex: 1; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(40,167,69,0.3); min-width: 140px;">
+            Xác nhận đặt vé & Lấy mã QR 💳
+        </button>
+       </div>
+    </div>
+
+    <div id="client-dashboard-modal" class="modal-overlay" style="display: none; z-index: 10005;">
+        <div class="modal-content" style="max-width: 650px; width: 90%;">
+            <h3 style="color: #0068ff; margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+                <span>🎫 Danh sách vé máy bay của tôi</span>
+                <button onclick="document.getElementById('client-dashboard-modal').style.display='none'" style="background: none; border: none; font-size: 22px; cursor: pointer; color: red;">✕</button>
+            </h3>
+            <div id="client-tickets-list" style="max-height: 55vh; overflow-y: auto; padding-right: 5px; margin-top: 15px;">
+                <p style="text-align: center; color: gray;">Đang tải lịch sử đặt vé...</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://zalo.me/0865286871" target="_blank" class="zalo-float">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Liên hệ Zalo">
+    </a>
+
+    <button class="open-sidebar-btn" onclick="openSidebar()">☰ Menu</button>
+
+    <div id="left-sidebar" class="sidebar">
+        <button class="close-sidebar-btn" onclick="closeSidebar()">✕</button>
+        <div class="sidebar-section">
+            <h3><span class="icon">🎫</span> Hướng dẫn & Thanh toán</h3>
+            <hr>
+            <a href="#" onclick="showInfo('thongbao')">📢 Thông báo mới nhất</a>
+            <a href="#" onclick="showInfo('huongdan')">📖 Hướng dẫn đặt vé</a>
+            <a href="#" onclick="showInfo('thanhtoan')">💳 Hình thức thanh toán</a>
+            <a href="#" onclick="showAdminDashboard()" style="color: #e128d5; font-weight: bold;">⚙️ Quản trị viên (Admin)</a>
+        </div>
+    </div>
+
+    <div id="info-modal" class="modal-overlay" style="display: none; z-index: 10002;">
+        <div class="modal-content" style="max-width: 500px; line-height: 1.6;">
+            <h3 id="info-title" style="color: #e128d5; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">Tiêu đề</h3>
+            <div id="info-body" style="font-size: 15px; color: #444; max-height: 60vh; overflow-y: auto; padding-right: 10px;"> Nội dung... </div>
+            <button onclick="document.getElementById('info-modal').style.display='none'" style="margin-top: 20px; width: 100%; background: #333; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Đóng lại</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://b86xzs1p-7211.asse.devtunnels.ms/api';
+        let currentBookingId = null;
+        let selectedFlightForBooking = null;
+
+        function logout() {
+            localStorage.removeItem("currentUser");
+            localStorage.removeItem("currentFullName");
+            updateAuthUI();
+        }
+
+        // --- CẬP NHẬT: THÊM NÚT "QUẢN LÝ VÉ" VÀO GIAO DIỆN KHI ĐĂNG NHẬP ---
+        function updateAuthUI() {
+    const authSection = document.getElementById("auth-section");
+    let loggedInUser = localStorage.getItem("currentUser");
+    let loggedInName = localStorage.getItem("currentFullName");
+
+    if (loggedInUser) {
+        authSection.innerHTML = `
+            <div class="logged-in-user">
+                <span>👤</span> Xin chào, <b>${loggedInName}</b> 
+                <button onclick="showClientDashboard()" style="margin-left: 10px; background: #28a745; color: white; border: none; border-radius: 5px; padding: 5px 12px; cursor: pointer; font-weight: bold;">Quản lý vé</button>
+                <button onclick="logout()" style="margin-left: 5px; background: red; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-weight: bold;">Đăng xuất</button>
+            </div>`;
+    } else {
+        // chuyển trang
+        authSection.innerHTML = `
+            <a href="dangki.html" class="btn-register" style="text-decoration: none; display: inline-block;">Đăng ký</a>
+            <a href="dangnhap.html" class="btn-login" style="text-decoration: none; display: inline-block;">Đăng nhập</a>
+        `;
+    }
+}
+
+//TÍCH HỢP LUỒNG THANH TOÁN CHO VÉ GIỮ CHỖ
+async function showClientDashboard() {
+    let username = localStorage.getItem("currentUser");
+    if (!username) return;
+
+    document.getElementById('client-dashboard-modal').style.display = 'flex';
+    const listDiv = document.getElementById('client-tickets-list');
+    listDiv.innerHTML = '<p style="text-align: center; color: gray;">Đang tải danh sách vé...</p>';
+
+    try {
+        let res = await fetch(`${API_URL}/flights/my-tickets?username=${username}`);
+        if (!res.ok) throw new Error("Lỗi kết nối API");
+        let tickets = await res.json();
+        
+        if (tickets.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: red; font-weight: bold; margin: 20px 0;">Bạn chưa có đơn đặt vé nào trên hệ thống.</p>';
+            return;
+        }
+
+        let html = '';
+        tickets.forEach(t => {
+            let statusColor = t.status === "Đã duyệt" ? "green" : (t.status.includes("Khach") || t.status.includes("báo") ? "blue" : "orange");
+            let logoUrl = getAirlineLogo(t.airline); 
+
+            // 👉 ĐOẠN XỬ LÝ NÚT THANH TOÁN SAU: Nếu trạng thái là Chờ thanh toán, sinh thêm nút bấm hành động
+            let actionPayButton = '';
+            if (t.status === "Chờ thanh toán") {
+                actionPayButton = `
+                    <div style="text-align: right; margin-top: 10px;">
+                        <button onclick="payLaterTicket('${t.id}', ${t.totalPrice}, '${t.phone}', '${t.email}')" style="background: #28a745; color: white; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(40,167,69,0.2); transition: 0.2s;">
+                            💳 Tiến hành Thanh toán ngay
+                        </button>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div style="border: 1px solid #e2e8f0; padding: 18px; margin-bottom: 15px; border-radius: 14px; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.04); font-family: Arial, sans-serif;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf2f7; padding-bottom: 10px; margin-bottom: 12px;">
+                        <span style="font-weight: bold; color: #0068ff; font-size: 15px;">🎫 Mã đặt chỗ: <span style="color: #ff3b30; letter-spacing: 0.5px;">${t.id}</span></span>
+                        <span style="color: ${statusColor}; font-weight: bold; background: #f7fafc; border: 1px solid ${statusColor}; padding: 3px 10px; border-radius: 6px; font-size: 12px;">${t.status}</span>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #edf2f7;">
+                        <img src="${logoUrl}" style="width: 40px; height: 45px; object-fit: contain; background: white; padding: 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 14px; font-weight: bold; color: #2d3748;">
+                                ${t.airline} <span style="color: #0068ff; margin: 0 5px;">➔</span> Hành trình: ${t.from} đến ${t.to}
+                            </div>
+                            <div style="font-size: 12px; color: #718096; margin-top: 4px;">
+                                📅 Ngày bay: <strong>${t.date}</strong> | ⏰ Giờ cất cánh: <strong style="color: #ff3b30; font-size: 13px;">${t.departureTime}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 13px; color: #4a5568; line-height: 1.6; padding-left: 4px;">
+                        <p style="margin: 4px 0;">👤 <strong>Hành khách:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #1a202c;">${t.lastName} ${t.firstName}</span> (${t.passengerType})</p>
+                        <p style="margin: 4px 0;">📞 <strong>Liên hệ:</strong> ${t.phone} | ✉️ ${t.email}</p>
+                        <p style="margin: 4px 0;">💺 <strong>Hạng dịch vụ:</strong> <span style="color: #28a745; font-weight: bold;">${t.ticketClass}</span></p>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #edf2f7;">
+                        <div>
+                            <span style="font-size: 12px; color: #718096;">Tổng tiền:</span>
+                            <strong style="font-size: 16px; color: #ff3b30; margin-left: 5px;">${t.totalPrice.toLocaleString('vi-VN')} đ</strong>
+                        </div>
+                        ${actionPayButton}
+                    </div>
+                </div>
+            `;
+        });
+        listDiv.innerHTML = html;
+    } catch (error) {
+        listDiv.innerHTML = '<p style="text-align: center; color: red; padding: 10px;">Không thể tải dữ liệu lịch sử vé lúc này!</p>';
+    }
+}
+
+        window.onload = function() { 
+            updateAuthUI();
+            // Kiểm tra xem có đơn hàng vừa xác nhận thành công chuyển về không
+           let pendingPayment = localStorage.getItem("pendingPaymentTrigger");
+           if (pendingPayment) {
+           let pData = JSON.parse(pendingPayment);
+           localStorage.removeItem("pendingPaymentTrigger"); // Xóa cờ ngay để tránh lặp lại khi F5
+           showPaymentScreen(pData.id, pData.totalPrice, pData.phone, pData.email);
+           }
+         };
+        function openSidebar() { document.getElementById("left-sidebar").style.left = "0"; }
+        function closeSidebar() { document.getElementById("left-sidebar").style.left = "-350px"; }
+
+        flatpickr("#date", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                let date = dayElem.dateObj;
+                try {
+                    let lunar = Solar.fromYmd(date.getFullYear(), date.getMonth() + 1, date.getDate()).getLunar();
+                    let lunarDay = lunar.getDay();
+                    let lunarMonth = Math.abs(lunar.getMonth());
+                    let lunarText = (lunarDay === 1) ? `${lunarDay}/${lunarMonth}` : lunarDay;
+                    dayElem.innerHTML += `<span style='font-size: 11px; color: #d81b60; margin-top: -2px; font-weight: bold;'>${lunarText}</span>`;
+                } catch (error) {}
+            }
+        });
+
+        function getAirlineLogo(airlineName) {
+            let name = airlineName.toLowerCase();
+            if (name.includes("vietnam airlines")) return "./images/vna.png";
+            if (name.includes("vietjet")) return "./images/vj.png";
+            if (name.includes("bamboo")) return "./images/bamboo.png";
+            if (name.includes("vietravel")) return "./images/vietravel.png";
+            return "https://cdn-icons-png.flaticon.com/512/3125/3125713.png"; 
+        }
+
+        async function searchFlights() {
+           const from = document.getElementById('from').value;
+           const to = document.getElementById('to').value;
+           const date = document.getElementById('date').value;
+    
+         //  Kiểm tra điền đầy đủ thông tin ở Frontend
+         if (!from || !to || !date) {
+          alert("Vui lòng chọn đầy đủ Điểm đi, Điểm đến và Ngày bay.");
+         return;
+        }
+
+        //  Chặn đứng nếu điểm đi và điểm đến giống nhau
+        if (from === to) {
+          alert("❌ Điểm đi và Điểm đến không được trùng nhau! Vui lòng chọn lại hành trình.");
+          return;
+        }
+
+        let query = `?from=${from}&to=${to}&date=${date}`;
+    
+       try {
+        const response = await fetch(`${API_URL}/flights/search${query}`);
+        
+        // Nếu Backend trả về lỗi (Ví dụ lỗi trùng địa điểm)
+        if (!response.ok) {
+            const errData = await response.json();
+            alert(`❌ Lỗi: ${errData.message}`);
+            return;
+        }
+
+        const flights = await response.json();
+        displayFlights(flights);
+    } catch (error) { 
+        alert('Lỗi kết nối máy chủ!'); 
+    }
+}
+
+        function calculateFlightDetails(from, to, depTime) {
+            let duration = 130;
+            if ((from === "HAN" && to === "DAD") || (from === "DAD" && to === "HAN")) duration = 80;
+            if ((from === "SGN" && to === "DAD") || (from === "DAD" && to === "SGN")) duration = 90;
+            
+            let [h, m] = depTime.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return { arrTime: "N/A", durText: "Chưa rõ" };
+
+            let totalMins = h * 60 + m + duration;
+            let arrH = Math.floor(totalMins / 60) % 24;
+            let arrM = totalMins % 60;
+            let durH = Math.floor(duration / 60);
+            let durM = duration % 60;
+
+            return {
+                arrTime: `${arrH.toString().padStart(2, '0')}:${arrM.toString().padStart(2, '0')}`,
+                durText: `${durH}h ${durM}phút`
+            };
+        }
+
+        function displayFlights(flights) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            if (flights.length === 0) {
+                resultsDiv.innerHTML = '<p style="color: red; text-align:center;font-weight: bold;">😵 Không tìm thấy chuyến bay phù hợp.</p>';
+                return;
+            }
+
+            flights.forEach(flight => {
+                const flightJson = JSON.stringify(flight).replace(/"/g, '&quot;');
+                const flightDetails = calculateFlightDetails(flight.from, flight.to, flight.departureTime);
+                const card = document.createElement('div');
+                card.className = 'flight-card'; 
+                card.style.cssText = 'border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; display: flex; flex-wrap: wrap; background: white; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);';
+                
+                card.innerHTML = `
+                    <div style="display: flex; flex-wrap: wrap; width: 100%;">
+                        <div style="flex: 1; padding: 20px; min-width: 300px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div style="text-align: left;">
+                                    <div style="font-size: 26px; font-weight: normal; color: #005699;">${flight.departureTime}</div>
+                                    <div style="font-size: 16px; font-weight: bold; color: #444; margin-top: 5px;">${flight.from}</div>
+                                </div>
+                                <div style="flex: 1; text-align: center; position: relative; margin: 0 20px;">
+                                    <span style="background: white; color: #005699; padding: 2px 10px; font-size: 13px; z-index: 1; position: relative;">Bay thẳng</span>
+                                    <div style="border-bottom: 1px dashed #005699; position: absolute; top: 50%; width: 100%; z-index: 0;"></div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 26px; font-weight: normal; color: #005699;">${flightDetails.arrTime}</div>
+                                    <div style="font-size: 16px; font-weight: bold; color: #444; margin-top: 5px;">${flight.to}</div>
+                                </div>
+                            </div>
+                            <div style="color: #666; font-size: 14px; margin-top: 15px;">⏱️ Thời gian bay ${flightDetails.durText}</div>
+                            <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background-color: #f8f9fa; padding: 8px 12px; border-radius: 8px; border: 1px solid #eee;">
+                                <img src="${getAirlineLogo(flight.airline)}" alt="Logo" style="width: 50px; height: 50px; object-fit: contain; background: white; border-radius: 6px; padding: 2px; border: 1px solid #ddd;">
+                                <div>
+                                    <div style="font-size: 13px; color: #666; margin-bottom: 3px;">Khai thác bởi</div>
+                                    <strong style="font-size: 15px; color: #333;">${flight.airline}</strong>
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px;">
+                            <span style="color: ${flight.availableSeats <= 0 ? '#718096' : flight.availableSeats < 10 ? '#ff3b30' : '#28a745'}; font-size: 13px; font-weight: bold; padding: 5px 10px; background: ${flight.availableSeats <= 0 ? '#edf2f7' : flight.availableSeats < 10 ? '#fff5f5' : '#f0fdf4'}; border: 1px solid ${flight.availableSeats <= 0 ? '#e2e8f0' : flight.availableSeats < 10 ? '#feb2b2' : '#d1fae5'}; border-radius: 4px; display: inline-block;">
+                             ${flight.availableSeats <= 0 ? '❌ Đã bán hết vé' : `🎫 Còn trống ${flight.availableSeats} ghế`}
+                            </span>
+                            </div>
+                        </div>
+                        <div style="background-color: #005a66; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 180px; text-align: center;">
+                            <div style="font-size: 14px; margin-bottom: 5px; opacity: 0.9;">từ</div>
+                            <div style="font-size: 26px; font-weight: bold; margin-bottom: 5px;">${flight.price.toLocaleString('vi-VN')}</div>
+                            <div style="font-size: 16px; margin-bottom: 5px;">VND</div>
+                            <button class="btn-book" 
+                                style="background: white; color: #005a66; font-size:15px; font-weight:bold; width: 100%; border-radius: 20px; padding: 10px 15px; border: none; ${flight.availableSeats <= 0 ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);'}" 
+                                ${flight.availableSeats <= 0 ? 'disabled' : ''} 
+                                onclick="showInputForm(this, '${flightJson}')">
+                                ${flight.availableSeats <= 0 ? 'Hết chỗ' : 'Chọn chuyến này'}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-container" style="width: 100%; background: #f0f8ff;"></div>
+                `;
+                resultsDiv.appendChild(card);
+            });
+        }
+
+        function showInputForm(buttonElement, flightJson) {
+            if (!localStorage.getItem("currentUser")) {
+                alert("⚠️ Bạn cần đăng nhập tài khoản để có thể đặt vé!");
+                return;
+            }
+            const flight = JSON.parse(flightJson);
+            selectedFlightForBooking = flight;
+
+            document.querySelectorAll('.form-container').forEach(container => container.innerHTML = '');
+            const formHtml = `
+                <div class="input-form-group">
+                    <h4 style="margin-top: 0; margin-bottom: 5px; color: #0068ff;">Nhập thông tin hành khách</h4>
+                    <div class="input-row">
+                        <input type="text" id="inp-lastname" placeholder="Họ và tên đệm" required>
+                        <input type="text" id="inp-firstname" placeholder="Tên" required>
+                    </div>
+                    <div class="input-row">
+                        <input type="text" id="inp-phone" placeholder="Số điện thoại" required>
+                        <input type="email" id="inp-email" placeholder="Email nhận vé" required>
+                    </div>
+                    <div class="input-row">
+                        <select id="inp-class">
+                            <option value="Phổ thông">Hạng Phổ thông</option>
+                            <option value="Thương gia">Hạng Thương gia (x2 Giá)</option>
+                        </select>
+                        <select id="inp-type">
+                            <option value="Người lớn">Người lớn</option>
+                            <option value="Trẻ em">Trẻ em (Giảm 30%)</option>
+                        </select>
+                    </div>
+                    <button onclick="reviewBooking()" style="background: #0068ff; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px; width: 100%;">Tiếp tục (Xem lại thông tin)</button>
+                </div>
+            `;
+            buttonElement.closest('.flight-card').querySelector('.form-container').innerHTML = formHtml;
+        }
+
+function reviewBooking() {
+    const lName = document.getElementById('inp-lastname').value.trim();
+    const fName = document.getElementById('inp-firstname').value.trim();
+    const phone = document.getElementById('inp-phone').value.trim();
+    const email = document.getElementById('inp-email').value.trim();
+    const tClass = document.getElementById('inp-class').value;
+    const pType = document.getElementById('inp-type').value;
+
+    if(!lName || !fName || !phone || !email) {
+        alert("Vui lòng điền đầy đủ Họ Tên, SĐT và Email để làm thủ tục!"); return;
+    }
+
+    // Đóng gói dữ liệu tạm thời vào localStorage để mang sang trang mới
+    const bookingData = {
+        lastName: lName,
+        firstName: fName,
+        phone: phone,
+        email: email,
+        ticketClass: tClass,
+        passengerType: pType
+    };
+    localStorage.setItem("tempBookingData", JSON.stringify(bookingData));
+    localStorage.setItem("tempSelectedFlight", JSON.stringify(selectedFlightForBooking));
+
+    // CHUYỂN HƯỚNG SANG TRANG MỚI HOÀN TOÀN
+    window.location.href = "xacnhan.html";
+}
+
+        function closeConfirmModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+
+        async function submitBooking() {
+            const requestData = {
+                flightId: selectedFlightForBooking.id,
+                lastName: document.getElementById('inp-lastname').value,
+                firstName: document.getElementById('inp-firstname').value,
+                phone: document.getElementById('inp-phone').value,
+                email: document.getElementById('inp-email').value,
+                ticketClass: document.getElementById('inp-class').value,
+                passengerType: document.getElementById('inp-type').value,
+                username: localStorage.getItem("currentUser") // Truyền kèm username tài khoản đặt
+            };
+
+            document.getElementById('review-ticket-section').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/flights/book`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showPaymentScreen(result.booking.id, result.booking.totalPrice, requestData.phone, requestData.email);
+                } else { alert(`Lỗi: ${result.message}`); }
+            } catch (error) { alert('Lỗi kết nối khi đặt vé!'); }
+        }
+
+        // --- CẬP NHẬT: TỰ ĐỘNG TẠO QR THANH TOÁN THEO SỐ TIỀN THỰC TẾ ---
+    function showPaymentScreen(bookingId, price, phone, email) {
+    currentBookingId = bookingId;
+    document.querySelector('.search-box').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('payment-section').style.display = 'block';
+
+    let transferContent = `VEMAYBAY ${bookingId} ${phone}`;
+
+    document.getElementById('pay-booking-id').innerText = bookingId;
+    document.getElementById('pay-email').innerText = email;
+    document.getElementById('pay-amount').innerText = price.toLocaleString('vi-VN') + ' VND';
+    document.getElementById('pay-content').innerText = transferContent;
+
+    // Ép kiểu số tiền về số nguyên dương (tránh lỗi ngân hàng không nhận QR)
+    let finalAmount = Math.round(price); 
+    
+    // Mã hóa nội dung chuyển khoản để link URL không bị lỗi khoảng trắng
+    let safeContent = encodeURIComponent(transferContent);
+    
+    // SỬ DỤNG SERVER SEPAY (Cực kỳ ổn định và không bao giờ bị vỡ ảnh)
+    const qrUrl = `https://qr.sepay.vn/img?bank=MB&acc=00407200588888&amount=${finalAmount}&des=${safeContent}`;
+    
+    // Gán URL ảnh vào thẻ img QR
+    document.getElementById('qr-image').src = qrUrl;
+}
+        let checkInterval;
+        async function completePayment() {
+            const btnConfirm = document.querySelector('button[onclick="completePayment()"]');
+            const btnCancel = document.querySelector('button[onclick="cancelPayment()"]');
+            btnConfirm.style.display = 'none';
+            btnCancel.style.display = 'none';
+
+            const waitingText = document.createElement('h3');
+            waitingText.id = "waiting-msg";
+            waitingText.style.color = "#ff9800";
+            waitingText.innerHTML = "⏳ Đang chờ Admin xác nhận...<br><small>(Hệ thống sẽ gửi vé về Email sau khi duyệt)</small>";
+            document.getElementById('payment-section').appendChild(waitingText);
+
+            try {
+                await fetch(`${API_URL}/flights/update-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookingId: currentBookingId, status: "Khách báo đã chuyển khoản" })
+                });
+            } catch (error) { console.error("Lỗi gửi trạng thái lên máy chủ:", error); }
+
+            // Đoạn checkInterval bên trong hàm completePayment()
+           checkInterval = setInterval(async () => {
+             try {
+                let res = await fetch(`${API_URL}/flights/check-status/${currentBookingId}`);
+                let data = await res.json();
+            
+                if (data.status === "Đã duyệt") {
+                clearInterval(checkInterval);
+                alert("🎉 THÀNH CÔNG! Hãng bay đã xác nhận thanh toán và xuất vé điện tử.");
+                
+                if(document.getElementById('waiting-msg')) document.getElementById('waiting-msg').remove();
+                btnConfirm.style.display = 'block';
+                btnCancel.style.display = 'block';
+                
+                // GỌI HÀM HIỂN THỊ TRANG VÉ THÀNH CÔNG ĐẦY ĐỦ CHI TIẾT
+                showSuccessTicketPage(data.booking, data.flight);
+                 }
+               } catch (error) { }
+            }, 3000);
+        }
+
+        function cancelPayment() {
+          alert("🎉 Giữ chỗ tạm thời thành công! Chiếc vé của bạn đã được hệ thống niêm phong giữ chỗ trong vòng 24h.\n\n👉 Bạn có thể vào mục 'Quản lý vé' ở góc trên bên phải bất cứ lúc nào để tiến hành quét mã thanh toán lại.");
+          resetUI();
+        }
+
+        function showAdminDashboard() {
+            let user = localStorage.getItem("currentUser");
+            if (!user || user.trim().toLowerCase() !== "admin") {
+                alert("🚫 Bạn không có quyền truy cập trang Quản trị!");
+                return;
+            }
+            window.location.href = "admin.html"; 
+        }
+
+        async function showInfo(type) {
+            const modal = document.getElementById('info-modal');
+            const title = document.getElementById('info-title');
+            const body = document.getElementById('info-body');
+
+            if (type === 'huongdan') {
+                title.innerHTML = '📖 Hướng dẫn đặt vé trực tuyến';
+                body.innerHTML = `
+                    <ol style="padding-left: 20px;">
+                        <li><b>Tìm kiếm:</b> Chọn Điểm đi, Điểm đến và Ngày bay mong muốn.</li>
+                        <li><b>Chọn chuyến:</b> Lựa chọn chuyến bay phù hợp và bấm "Chọn chuyến này".</li>
+                        <li><b>Điền thông tin:</b> Đăng nhập tài khoản, nhập đầy đủ Họ Tên, SĐT và Email người bay.</li>
+                        <li><b>Thanh toán:</b> Quét mã QR tự động trên màn hình và bấm "Tôi đã thanh toán".</li>
+                        <li><b>Nhận vé:</b> Chờ Admin duyệt, vé điện tử sẽ tự động gửi về Email của bạn.</li>
+                    </ol>`;
+            } 
+            else if (type === 'thanhtoan') {
+                title.innerHTML = '💳 Hình thức thanh toán';
+                body.innerHTML = `
+                    <p>Hiện tại hệ thống hỗ trợ phương thức <b>Chuyển khoản ngân hàng (Quét mã QR tự động)</b>.</p>
+                    <ul style="padding-left: 20px;">
+                        <li>Ngân hàng: <b>MB Bank</b></li>
+                        <li>Chủ tài khoản: <b>NGUYEN TIEN THO</b></li>
+                        <li>Số tài khoản: <b>00407200588888</b></li>
+                    </ul>
+                    <p style="color: red; font-style: italic;">Lưu ý: Hệ thống đã nhúng tự động giá tiền vào QR, vui lòng giữ nguyên nội dung chuyển khoản để được duyệt nhanh nhất.</p>`;
+            } 
+            else if (type === 'thongbao') {
+                title.innerHTML = '📢 Thông báo mới nhất';
+                body.innerHTML = '<p style="color: gray;">Đang tải thông báo từ hệ thống...</p>';
+                modal.style.display = 'flex';
+                try {
+                    let res = await fetch(`${API_URL}/flights/announcement`);
+                    let data = await res.json();
+                    body.innerHTML = `<div style="padding: 15px; background: #e0f2fe; border-left: 4px solid #0ea5e9; border-radius: 4px; font-weight: bold; color: #0369a1;">${data.content}</div>`;
+                } catch (e) { body.innerHTML = '<p style="color: red;">Lỗi tải thông báo!</p>'; }
+                return;
+            }
+            modal.style.display = 'flex';
+        }
+
+        // HÀM DỰNG VÀ IN VÉ ĐIỆN TỬ RA MÀN HÌNH CLIENT
+function showSuccessTicketPage(booking, flight) {
+    // Ẩn màn hình thanh toán QR đi, hiện màn hình vé thành công lên
+    document.getElementById('payment-section').style.display = 'none';
+    document.getElementById('success-ticket-section').style.display = 'block';
+    
+    const contentDiv = document.getElementById('ticket-receipt-content');
+    let logoUrl = getAirlineLogo(flight.airline);
+    
+    contentDiv.innerHTML = `
+        <div style="border: 1px dashed #28a745; background: #f8fdf9; padding: 20px; border-radius: 10px; color: #333;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #28a745; padding-bottom: 10px; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="${logoUrl}" style="width: 45px; height: 45px; object-fit: contain; background: white; padding: 2px; border-radius: 4px; border: 1px solid #ddd;">
+                    <strong style="font-size: 16px; color: #005699;">${flight.airline}</strong>
+                </div>
+                <span style="background: #28a745; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; letter-spacing: 0.5px;">ĐÃ XUẤT VÉ ĐIỆN TỬ</span>
+            </div>
+            
+            <div style="background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                <span style="font-size: 11px; color: #718096; display: block; font-weight: bold; letter-spacing: 0.5px;">MÃ ĐẶT CHỖ / PNR CODE</span>
+                <strong style="font-size: 28px; color: #ff3b30; letter-spacing: 3px;">${booking.id}</strong>
+            </div>
+
+            <h3 style="color: #005699; margin: 0 0 8px 0; font-size: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">📊 CHI TIẾT HÀNH TRÌNH CHUYẾN BAY</h3>
+            <table style="width: 100%; font-size: 14px; border-collapse: collapse; margin-bottom: 15px;">
+                <tr style="height: 28px;">
+                    <td style="color: #666; width: 35%;">Chặng bay:</td>
+                    <td><strong style="color: #0068ff;">${flight.from} ➔ ${flight.to}</strong></td>
+                </tr>
+                <tr style="height: 28px;">
+                    <td style="color: #666;">Ngày cất cánh:</td>
+                    <td><strong>${flight.date}</strong></td>
+                </tr>
+                <tr style="height: 28px;">
+                    <td style="color: #666;">Giờ khởi hành:</td>
+                    <td><strong style="color: #ff3b30; font-size: 15px;">${flight.departureTime}</strong></td>
+                </tr>
+            </table>
+
+            <h3 style="color: #005699; margin: 15px 0 8px 0; font-size: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">👤 THÔNG TIN HÀNH KHÁCH & DỊCH VỤ</h3>
+            <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                <tr style="height: 28px;">
+                    <td style="color: #666; width: 35%;">Họ và tên khách:</td>
+                    <td><strong style="text-transform: uppercase;">${booking.lastName} ${booking.firstName}</strong></td>
+                </tr>
+                <tr style="height: 28px;">
+                    <td style="color: #666;">Số điện thoại:</td>
+                    <td><strong>${booking.phone}</strong></td>
+                </tr>
+                <tr style="height: 28px;">
+                    <td style="color: #666;">Hạng dịch vụ:</td>
+                    <td><span style="color: #28a745; font-weight: bold;">${booking.ticketClass}</span> (${booking.passengerType})</td>
+                </tr>
+                <tr style="height: 28px;">
+                    <td style="color: #666;">Hòm thư nhận vé:</td>
+                    <td style="color: #005699; font-style: italic;">${booking.email}</td>
+                </tr>
+            </table>
+            
+            <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #28a745;">
+                <span style="font-size: 12px; color: #666;">Tổng tiền vé đã thanh toán qua MB Bank:</span><br>
+                <strong style="font-size: 22px; color: #ff3b30;">${booking.totalPrice.toLocaleString('vi-VN')} VND</strong>
+            </div>
+        </div>
+    `;
+}
+
+     // HÀM RESET KHI KHÁCH BẤM QUAY LẠI TRANG CHỦ
+     function resetUIFromSuccess() {
+    document.getElementById('success-ticket-section').style.display = 'none';
+    document.querySelector('.search-box').style.display = 'flex';
+    document.getElementById('results').style.display = 'block';
+    
+    // Bảo vệ tương tự cho luồng hoàn tất xuất vé thành công
+    const from = document.getElementById('from').value;
+    const to = document.getElementById('to').value;
+    const date = document.getElementById('date').value;
+    
+    if (from && to && date) {
+        searchFlights();
+    } else {
+        document.getElementById('results').innerHTML = '🔍 Vui lòng nhập thông tin tìm kiếm...';
+    }
+}
+     // KÍCH HOẠT LẠI KHUNG QR THANH TOÁN CHO VÉ CHỜ ĐỒNG BỘ
+function payLaterTicket(id, price, phone, email) {
+    // 1. Đóng bảng popup quản lý lịch sử lại
+    document.getElementById('client-dashboard-modal').style.display = 'none';
+    
+    // 2. Gọi hàm dựng QR động và bật vùng cổng thanh toán lên cho khách quét tiền
+    showPaymentScreen(id, price, phone, email);
+}
+// HÀM QUAY LẠI: Ẩn trang hóa đơn xác nhận, khôi phục lại bảng tìm kiếm chuyến bay cũ để chỉnh sửa
+function backToEditBooking() {
+    document.getElementById('review-ticket-section').style.display = 'none';
+    document.querySelector('.search-box').style.display = 'flex';
+    document.getElementById('results').style.display = 'block';
+}
+
+// BỔ SUNG KHÔNG GIAN CHO HÀM resetUI CÓ SẴN CỦA BẠN ĐỂ TRÁNH LỖI KHI ĐỔI TRANG
+function resetUI() {
+    document.querySelector('.search-box').style.display = 'flex';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('payment-section').style.display = 'none';
+    
+    //Kiểm tra xem các ô tìm kiếm có dữ liệu hay không trước khi gọi hàm
+    const from = document.getElementById('from').value;
+    const to = document.getElementById('to').value;
+    const date = document.getElementById('date').value;
+    
+    if (from && to && date) {
+        searchFlights(); // Chỉ tự động tìm kiếm lại nếu đã điền sẵn dữ liệu hành trình
+    } else {
+        // Nếu ô tìm kiếm trống (do vừa đổi trang về), trả giao diện kết quả về trạng thái ban đầu sạch sẽ
+        document.getElementById('results').innerHTML = '🔍 Vui lòng nhập thông tin tìm kiếm...';
+    }
+}
+    </script>
+</body>
+</html>

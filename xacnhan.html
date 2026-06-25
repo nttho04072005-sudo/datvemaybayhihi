@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác Nhận Hành Trình & Thông Tin Đặt Vé</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .confirm-card { background: #ffffff; width: 100%; max-width: 650px; padding: 35px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); box-sizing: border-box; }
+        h2 { color: #0068ff; text-align: center; margin-top: 0; margin-bottom: 25px; font-weight: 800; letter-spacing: -0.5px; border-bottom: 2px solid #f0f4f8; padding-bottom: 15px; }
+        h3 { color: #1a1f36; font-size: 15px; font-weight: 700; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px; }
+        
+        /* Khối chuyến bayreadonly */
+        .flight-info-box { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .flight-info-box img { width: 50px; height: 50px; object-fit: contain; background: white; padding: 3px; border-radius: 8px; border: 1px solid #ddd; }
+        
+        /* Khung nhập liệu chỉnh sửa */
+        .edit-form-group { background: #fcfcfd; border: 1px solid #edf2f7; padding: 20px; border-radius: 16px; }
+        .input-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .input-field { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
+        .input-field label { font-size: 13px; font-weight: 600; color: #4a5568; }
+        .input-field input, .input-field select { padding: 12px 15px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #1a1f36; background: #ffffff; transition: all 0.3s; box-sizing: border-box; width: 100%; }
+        .input-field input:focus, .input-field select:focus { border-color: #0068ff; outline: none; box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.1); }
+        
+        /* Tổng tiền */
+        .price-summary-box { text-align: right; padding: 15px 20px; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 12px; margin-top: 25px; }
+        .price-summary-box span { font-size: 13px; color: #718096; font-weight: bold; }
+        .price-summary-box strong { font-size: 26px; color: #ff3b30; display: block; margin-top: 2px; }
+        
+        /* Nút điều hướng */
+        .btn-group { display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .btn { padding: 14px 20px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; flex: 1; min-width: 160px; text-align: center; text-decoration: none; }
+        .btn-back { background: #e2e8f0; color: #4a5568; }
+        .btn-back:hover { background: #cbd5e1; }
+        .btn-confirm { background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; box-shadow: 0 4px 15px rgba(40,167,69,0.25); }
+        .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(40,167,69,0.35); }
+    </style>
+</head>
+<body>
+
+    <div class="confirm-card">
+        <h2><i class="fa-solid fa-square-check"></i> XÁC NHẬN HÀNH TRÌNH ĐƠN HÀNG</h2>
+
+        <h3><i class="fa-solid fa-plane-departure" style="color:#0068ff;"></i> 1. Thông tin chuyến bay đã chọn</h3>
+        <div class="flight-info-box">
+            <img id="airline-logo" src="" alt="Logo">
+            <div style="font-size: 14px; line-height: 1.6; color: #4a5568;">
+                Hãng vận chuyển: <strong id="txt-airline" style="color: #1a1f36;"></strong><br>
+                Hành trình chặng bay: <strong id="txt-route" style="color: #0068ff;"></strong> (Bay thẳng)<br>
+                Ngày cất cánh: <span id="txt-date" style="font-weight:bold; color: #333;"></span><br>
+                ⏱️ <b>Thời gian biểu:</b> Khởi hành lúc <strong id="txt-time" style="color:#ff3b30;"></strong> ➔ Hạ cánh lúc <strong id="txt-arrtime" style="color:#28a745;"></strong> (<span id="txt-duration" style="font-style: italic; color: #6b7280; font-weight: 500;"></span>)
+            </div>
+        </div>
+
+        <h3><i class="fa-solid fa-user-pen" style="color:#0068ff;"></i> 2. Thông tin hành khách (Có thể chỉnh sửa nếu sai)</h3>
+        <div class="edit-form-group">
+            <div class="input-row">
+                <div class="input-field">
+                    <label>Họ và tên đệm</label>
+                    <input type="text" id="inp-lastname" placeholder="Ví dụ: Nguyễn Văn">
+                </div>
+                <div class="input-field">
+                    <label>Tên hành khách</label>
+                    <input type="text" id="inp-firstname" placeholder="Ví dụ: Thành">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-field">
+                    <label>Số điện thoại</label>
+                    <input type="text" id="inp-phone" placeholder="Nhập số điện thoại liên hệ">
+                </div>
+                <div class="input-field">
+                    <label>Email nhận vé điện tử</label>
+                    <input type="email" id="inp-email" placeholder="Nhập email chính xác">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-field">
+                    <label>Hạng ghế khoang bay</label>
+                    <select id="inp-class" onchange="calculateLivePrice()">
+                        <option value="Phổ thông">Hạng Phổ thông (Giá chuẩn)</option>
+                        <option value="Thương gia">Hạng Thương gia (Phụ thu x2)</option>
+                    </select>
+                </div>
+                <div class="input-field">
+                    <label>Cấu hình loại khách</label>
+                    <select id="inp-type" onchange="calculateLivePrice()">
+                        <option value="Người lớn">Người lớn (100% Giá)</option>
+                        <option value="Trẻ em">Trẻ em (Giảm ưu đãi 30%)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="price-summary-box">
+            <span>TỔNG CHI PHÍ HOÁ ĐƠN ĐẶT VÉ:</span>
+            <strong id="total-price">0 VND</strong>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-back" onclick="backToSearch()">⬅️ Hủy bỏ & Quay lại</button>
+            <button class="btn btn-confirm" onclick="confirmAndSendOrder()">Xác nhận đặt vé & Thanh toán 💳</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://b86xzs1p-7211.asse.devtunnels.ms/api';
+        let flight = null;
+
+        // 👉 ĐÃ NHÚNG: Hàm tính toán thời gian bay đồng bộ 100% với trang chủ index.html
+        function calculateFlightDetails(from, to, depTime) {
+            let duration = 130;
+            if ((from === "HAN" && to === "DAD") || (from === "DAD" && to === "HAN")) duration = 80;
+            if ((from === "SGN" && to === "DAD") || (from === "DAD" && to === "SGN")) duration = 90;
+            
+            let [h, m] = depTime.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return { arrTime: "N/A", durText: "Chưa rõ" };
+
+            let totalMins = h * 60 + m + duration;
+            let arrH = Math.floor(totalMins / 60) % 24;
+            let arrM = totalMins % 60;
+            let durH = Math.floor(duration / 60);
+            let durM = duration % 60;
+
+            return {
+                arrTime: `${arrH.toString().padStart(2, '0')}:${arrM.toString().padStart(2, '0')}`,
+                durText: `${durH}h ${durM}phút`
+            };
+        }
+
+        window.onload = function() {
+            flight = JSON.parse(localStorage.getItem("tempSelectedFlight"));
+            let passenger = JSON.parse(localStorage.getItem("tempBookingData"));
+
+            if (!flight || !passenger) {
+                alert("Không tìm thấy dữ liệu hành trình hợp lệ!");
+                window.location.href = "index.html";
+                return;
+            }
+
+            // 1. Đổ dữ liệu chuyến bay ra giao diện hiển thị
+            document.getElementById('airline-logo').src = getAirlineLogo(flight.airline);
+            document.getElementById('txt-airline').innerText = flight.airline;
+            document.getElementById('txt-route').innerText = `${flight.from} ➔ ${flight.to}`;
+            document.getElementById('txt-date').innerText = flight.date;
+            document.getElementById('txt-time').innerText = flight.departureTime;
+
+            // 🔥 TÍNH TOÁN VÀ ĐỔ GIỜ HẠ CÁNH / THỜI GIAN BAY RA MÀN HÌNH XÁC NHẬN
+            let details = calculateFlightDetails(flight.from, flight.to, flight.departureTime);
+            document.getElementById('txt-arrtime').innerText = details.arrTime;
+            document.getElementById('txt-duration').innerText = "Thời gian bay: " + details.durText;
+
+            // 2. Điền sẵn dữ liệu vào các ô Input để khách hàng kiểm tra và chỉnh sửa
+            document.getElementById('inp-lastname').value = passenger.lastName;
+            document.getElementById('inp-firstname').value = passenger.firstName;
+            document.getElementById('inp-phone').value = passenger.phone;
+            document.getElementById('inp-email').value = passenger.email;
+            document.getElementById('inp-class').value = passenger.ticketClass;
+            document.getElementById('inp-type').value = passenger.passengerType;
+
+            calculateLivePrice();
+        };
+
+        function calculateLivePrice() {
+            if (!flight) return 0;
+            let tClass = document.getElementById('inp-class').value;
+            let pType = document.getElementById('inp-type').value;
+
+            let finalPrice = flight.price;
+            if (tClass === "Thương gia") finalPrice *= 2;
+            if (pType === "Trẻ em") finalPrice *= 0.7;
+
+            document.getElementById('total-price').innerText = finalPrice.toLocaleString('vi-VN') + " đ";
+            return finalPrice;
+        }
+
+        function getAirlineLogo(airlineName) {
+            let name = airlineName.toLowerCase();
+            if (name.includes("vietnam airlines")) return "./images/vna.png";
+            if (name.includes("vietjet")) return "./images/vj.png";
+            if (name.includes("bamboo")) return "./images/bamboo.png";
+            if (name.includes("vietravel")) return "./images/vietravel.png";
+            return "https://cdn-icons-png.flaticon.com/512/3125/3125713.png"; 
+        }
+
+        function backToSearch() {
+            window.location.href = "index.html";
+        }
+
+        async function confirmAndSendOrder() {
+            const requestData = {
+                flightId: flight.id,
+                lastName: document.getElementById('inp-lastname').value.trim(),
+                firstName: document.getElementById('inp-firstname').value.trim(),
+                phone: document.getElementById('inp-phone').value.trim(),
+                email: document.getElementById('inp-email').value.trim(),
+                ticketClass: document.getElementById('inp-class').value,
+                passengerType: document.getElementById('inp-type').value,
+                username: localStorage.getItem("currentUser")
+            };
+
+            if (!requestData.lastName || !requestData.firstName || !requestData.phone || !requestData.email) {
+                alert("Vui lòng không để trống thông tin hành khách!"); return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/flights/book`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let paymentTrigger = {
+                        id: result.booking.id,
+                        totalPrice: result.booking.totalPrice,
+                        phone: requestData.phone,
+                        email: requestData.email
+                    };
+                    localStorage.setItem("pendingPaymentTrigger", JSON.stringify(paymentTrigger));
+                    
+                    localStorage.removeItem("tempBookingData");
+                    localStorage.removeItem("tempSelectedFlight");
+
+                    window.location.href = "index.html";
+                } else {
+                    alert(`❌ Lỗi hệ thống: ${result.message}`);
+                }
+            } catch (e) {
+                alert("Lỗi kết nối máy chủ khi chốt vé!");
+            }
+        }
+    </script>
+</body>
+</html>
