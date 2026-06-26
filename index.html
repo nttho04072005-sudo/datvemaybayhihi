@@ -109,28 +109,50 @@
         <h2>Kết quả tìm kiếm🚀</h2>
         <div id="results">🔍Vui lòng nhập thông tin tìm kiếm...</div>
         
-        <div id="payment-section" style="display: none; text-align: center; margin-top: 20px; padding: 20px; border: 2px dashed #28a745; border-radius: 10px; background-color: #fafffa;">
-            <h2 style="color: #28a745;">🎉 Đặt chỗ thành công!</h2>
-            <p>Mã đặt vé của bạn: <strong id="pay-booking-id" style="color: red; font-size: 1.2em;"></strong></p>
-            <p>Email nhận vé: <strong id="pay-email" style="color: blue;"></strong></p>
-            <p>Tổng tiền thanh toán: <strong id="pay-amount" style="color: red; font-size: 1.5em;"></strong></p>
-
-            <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px auto; max-width: 300px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-                <h3 style="margin-top: 0;">Quét mã QR để thanh toán</h3>
-                <img id="qr-image" src="" alt="Mã QR Thanh toán động" style="width: 220px; height: auto; margin-bottom: 10px; border: 1px solid #eee; padding: 5px; border-radius: 8px;">
-                <p style="margin-bottom: 5px;">Ngân hàng: <strong>MB BANK</strong></p>
-                <p style="margin-bottom: 5px;">Chủ tài khoản: <strong>NGUYEN TIEN THO</strong></p>
-                <p style="margin-bottom: 5px;">STK: <strong style="color: blue;">00407200588888</strong></p>
-                <p>Nội dung: <strong id="pay-content" style="color: blue;"></strong></p>
+        <div id="payment-section" style="display: none; margin-top: 20px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h2 style="color: #28a745; text-align: center; margin-top: 0;">🎉 BƯỚC CUỐI: THANH TOÁN ĐỂ XUẤT VÉ</h2>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+        <div style="flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <h3 style="color: #005699; margin-top: 0; border-bottom: 1px solid #cce0ff; padding-bottom: 10px;">📋 Chi tiết đặt vé của bạn</h3>
+            <p style="margin: 8px 0;"><strong>Mã đặt chỗ (PNR):</strong> <span id="pay-booking-id" style="color: #ff3b30; font-size: 20px; font-weight: bold; letter-spacing: 1px;"></span></p>
+            
+            <div style="margin-top: 15px;">
+                <strong style="color: #4a5568;">✈️ Thông tin chuyến bay:</strong>
+                <div id="pay-flight-info" style="margin-top: 5px; color: #1f2937; line-height: 1.6; font-size: 14px;"></div>
             </div>
 
-            <button onclick="completePayment()" style="background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px;">
-                ✅ Tôi đã thanh toán (Xác nhận)
-            </button>
-            <button onclick="cancelPayment()" style="background-color: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; width: 100%;">
-                Thanh toán sau (Giữ chỗ)
-            </button>
+            <div style="margin-top: 15px;">
+                <strong style="color: #4a5568;">👤 Thông tin hành khách:</strong>
+                <div id="pay-passenger-info" style="margin-top: 5px; color: #1f2937; line-height: 1.6; font-size: 14px;"></div>
+            </div>
+
+            <div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                <strong style="color: #4a5568;">💰 Tổng thanh toán:</strong>
+                <div id="pay-amount" style="color: #ff3b30; font-size: 24px; font-weight: bold; margin-top: 5px;"></div>
+            </div>
         </div>
+
+        <div style="flex: 1; min-width: 300px; text-align: center; background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; color: #1f2937;">Quét mã QR tự động</h3>
+            <img id="qr-image" src="" style="width: 220px; height: 220px; border: 1px solid #eee; padding: 5px; border-radius: 8px; margin-bottom: 10px;">
+            <p style="margin-bottom: 4px; font-size: 14px;">Ngân hàng: <strong>MB BANK</strong></p>
+            <p style="margin-bottom: 4px; font-size: 14px;">Chủ TK: <strong>NGUYEN TIEN THO</strong></p>
+            <p style="margin-bottom: 4px; font-size: 14px;">STK: <strong style="color: #0068ff;">00407200588888</strong></p>
+            <p style="font-size: 14px; margin-bottom: 10px;">Nội dung: <strong id="pay-content" style="color: #0068ff; background: #e0eafc; padding: 2px 6px; border-radius: 4px;"></strong></p>
+            <p style="color: #ff9800; font-size: 12px; font-style: italic;">* Vui lòng quét mã và giữ nguyên nội dung</p>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-top: 20px;">
+        <button onclick="cancelPayment()" style="flex: 1; background-color: #64748b; color: white; padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px;">
+            Thanh toán sau (Giữ chỗ trong vòng 4h)
+        </button>
+        <button onclick="completePayment()" style="flex: 2; background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; box-shadow: 0 4px 10px rgba(40,167,69,0.2);">
+            ✅ TÔI ĐÃ THANH TOÁN THÀNH CÔNG
+        </button>
+    </div>
+</div>
 
         <div id="success-ticket-section" style="display: none; margin-top: 20px; padding: 25px; border: 2px solid #28a745; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 15px rgba(40,167,69,0.15); font-family: Arial, sans-serif;">
             <div style="text-align: center; margin-bottom: 20px;">
@@ -261,7 +283,7 @@ async function showClientDashboard() {
             if (t.status === "Chờ thanh toán") {
                 actionPayButton = `
                     <div style="text-align: right; margin-top: 10px;">
-                        <button onclick="payLaterTicket('${t.id}', ${t.totalPrice}, '${t.phone}', '${t.email}')" style="background: #28a745; color: white; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(40,167,69,0.2); transition: 0.2s;">
+                        <button onclick="payLaterTicket('${t.id}', ${t.totalPrice}, '${t.phone}', '${t.email}', '${t.from} ➔ ${t.to}', '${t.departureTime} | ${t.date}', '${t.airline}', '${t.lastName} ${t.firstName}', '${t.ticketClass} - ${t.passengerType}')">
                             💳 Tiến hành Thanh toán ngay
                         </button>
                     </div>
@@ -316,7 +338,7 @@ async function showClientDashboard() {
            if (pendingPayment) {
            let pData = JSON.parse(pendingPayment);
            localStorage.removeItem("pendingPaymentTrigger"); // Xóa cờ ngay để tránh lặp lại khi F5
-           showPaymentScreen(pData.id, pData.totalPrice, pData.phone, pData.email);
+           showPaymentScreen(pData);
            }
          };
         function openSidebar() { document.getElementById("left-sidebar").style.left = "0"; }
@@ -560,29 +582,38 @@ function reviewBooking() {
         }
 
         // --- CẬP NHẬT: TỰ ĐỘNG TẠO QR THANH TOÁN THEO SỐ TIỀN THỰC TẾ ---
-    function showPaymentScreen(bookingId, price, phone, email) {
-    currentBookingId = bookingId;
+// --- HÀM NÂNG CẤP: ĐỔ DỮ LIỆU ĐẦY ĐỦ RA MÀN HÌNH THANH TOÁN ---
+function showPaymentScreen(data) {
+    currentBookingId = data.id;
     document.querySelector('.search-box').style.display = 'none';
     document.getElementById('results').style.display = 'none';
     document.getElementById('payment-section').style.display = 'block';
 
-    let transferContent = `VEMAYBAY ${bookingId} ${phone}`;
+    let transferContent = `VEMAYBAY ${data.id} ${data.phone}`;
 
-    document.getElementById('pay-booking-id').innerText = bookingId;
-    document.getElementById('pay-email').innerText = email;
-    document.getElementById('pay-amount').innerText = price.toLocaleString('vi-VN') + ' VND';
+    // 1. Đổ dữ liệu ID và Tiền
+    document.getElementById('pay-booking-id').innerText = data.id;
+    document.getElementById('pay-amount').innerText = data.totalPrice.toLocaleString('vi-VN') + ' VND';
     document.getElementById('pay-content').innerText = transferContent;
 
-    // Ép kiểu số tiền về số nguyên dương (tránh lỗi ngân hàng không nhận QR)
-    let finalAmount = Math.round(price); 
-    
-    // Mã hóa nội dung chuyển khoản để link URL không bị lỗi khoảng trắng
+    // 2. Đổ dữ liệu Chuyến bay
+    document.getElementById('pay-flight-info').innerHTML = `
+        Hãng bay: <b style="color: #005699;">${data.airline}</b><br>
+        Hành trình: <b>${data.flightRoute}</b><br>
+        Lịch trình: <b>${data.flightTime}</b>
+    `;
+
+    // 3. Đổ dữ liệu Hành khách
+    document.getElementById('pay-passenger-info').innerHTML = `
+        Họ và tên: <b style="text-transform: uppercase;">${data.passengerName}</b><br>
+        SĐT / Email: <b>${data.phone}</b> | ${data.email}<br>
+        Loại vé đã chọn: <b>${data.passengerType}</b>
+    `;
+
+    // 4. Sinh mã QR Động
+    let finalAmount = Math.round(data.totalPrice); 
     let safeContent = encodeURIComponent(transferContent);
-    
-    // SỬ DỤNG SERVER SEPAY (Cực kỳ ổn định và không bao giờ bị vỡ ảnh)
     const qrUrl = `https://qr.sepay.vn/img?bank=MB&acc=00407200588888&amount=${finalAmount}&des=${safeContent}`;
-    
-    // Gán URL ảnh vào thẻ img QR
     document.getElementById('qr-image').src = qrUrl;
 }
         let checkInterval;
@@ -628,7 +659,7 @@ function reviewBooking() {
         }
 
         function cancelPayment() {
-          alert("🎉 Giữ chỗ tạm thời thành công! Chiếc vé của bạn đã được hệ thống niêm phong giữ chỗ trong vòng 24h.\n\n👉 Bạn có thể vào mục 'Quản lý vé' ở góc trên bên phải bất cứ lúc nào để tiến hành quét mã thanh toán lại.");
+          alert("🎉 Giữ chỗ tạm thời thành công! Chiếc vé của bạn đã được hệ thống niêm phong giữ chỗ trong vòng 4h.\n\n👉 Bạn có thể vào mục 'Quản lý vé' ở góc trên bên phải bất cứ lúc nào để tiến hành quét mã thanh toán lại.");
           resetUI();
         }
 
@@ -768,12 +799,13 @@ function showSuccessTicketPage(booking, flight) {
     }
 }
      // KÍCH HOẠT LẠI KHUNG QR THANH TOÁN CHO VÉ CHỜ ĐỒNG BỘ
-function payLaterTicket(id, price, phone, email) {
-    // 1. Đóng bảng popup quản lý lịch sử lại
+function payLaterTicket(id, price, phone, email, route, time, airline, passName, passType) {
     document.getElementById('client-dashboard-modal').style.display = 'none';
-    
-    // 2. Gọi hàm dựng QR động và bật vùng cổng thanh toán lên cho khách quét tiền
-    showPaymentScreen(id, price, phone, email);
+    showPaymentScreen({
+        id: id, totalPrice: price, phone: phone, email: email,
+        flightRoute: route, flightTime: time, airline: airline,
+        passengerName: passName, passengerType: passType
+    });
 }
 // HÀM QUAY LẠI: Ẩn trang hóa đơn xác nhận, khôi phục lại bảng tìm kiếm chuyến bay cũ để chỉnh sửa
 function backToEditBooking() {

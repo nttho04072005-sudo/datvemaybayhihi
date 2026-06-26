@@ -217,7 +217,12 @@
                         id: result.booking.id,
                         totalPrice: result.booking.totalPrice,
                         phone: requestData.phone,
-                        email: requestData.email
+                        email: requestData.email,
+                        flightRoute: `${flight.from} ➔ ${flight.to}`,
+                        flightTime: `${flight.departureTime} | Ngày: ${flight.date}`,
+                        airline: flight.airline,
+                        passengerName: `${requestData.lastName} ${requestData.firstName}`,
+                        passengerType: `${requestData.ticketClass} - ${requestData.passengerType}`
                     };
                     localStorage.setItem("pendingPaymentTrigger", JSON.stringify(paymentTrigger));
                     
