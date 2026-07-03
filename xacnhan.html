@@ -108,26 +108,7 @@
         const API_URL = 'https://b86xzs1p-7211.asse.devtunnels.ms/api';
         let flight = null;
 
-        // 👉 ĐÃ NHÚNG: Hàm tính toán thời gian bay đồng bộ 100% với trang chủ index.html
-        function calculateFlightDetails(from, to, depTime) {
-            let duration = 130;
-            if ((from === "HAN" && to === "DAD") || (from === "DAD" && to === "HAN")) duration = 80;
-            if ((from === "SGN" && to === "DAD") || (from === "DAD" && to === "SGN")) duration = 90;
-            
-            let [h, m] = depTime.split(':').map(Number);
-            if (isNaN(h) || isNaN(m)) return { arrTime: "N/A", durText: "Chưa rõ" };
-
-            let totalMins = h * 60 + m + duration;
-            let arrH = Math.floor(totalMins / 60) % 24;
-            let arrM = totalMins % 60;
-            let durH = Math.floor(duration / 60);
-            let durM = duration % 60;
-
-            return {
-                arrTime: `${arrH.toString().padStart(2, '0')}:${arrM.toString().padStart(2, '0')}`,
-                durText: `${durH}h ${durM}phút`
-            };
-        }
+        
 
         window.onload = function() {
             flight = JSON.parse(localStorage.getItem("tempSelectedFlight"));
@@ -146,10 +127,8 @@
             document.getElementById('txt-date').innerText = flight.date;
             document.getElementById('txt-time').innerText = flight.departureTime;
 
-            // 🔥 TÍNH TOÁN VÀ ĐỔ GIỜ HẠ CÁNH / THỜI GIAN BAY RA MÀN HÌNH XÁC NHẬN
-            let details = calculateFlightDetails(flight.from, flight.to, flight.departureTime);
-            document.getElementById('txt-arrtime').innerText = details.arrTime;
-            document.getElementById('txt-duration').innerText = "Thời gian bay: " + details.durText;
+            document.getElementById('txt-arrtime').innerText = flight.arrivalTime;
+            document.getElementById('txt-duration').innerText = flight.duration;
 
             // 2. Điền sẵn dữ liệu vào các ô Input để khách hàng kiểm tra và chỉnh sửa
             document.getElementById('inp-lastname').value = passenger.lastName;

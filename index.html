@@ -404,25 +404,7 @@ async function showClientDashboard() {
     }
 }
 
-        function calculateFlightDetails(from, to, depTime) {
-            let duration = 130;
-            if ((from === "HAN" && to === "DAD") || (from === "DAD" && to === "HAN")) duration = 80;
-            if ((from === "SGN" && to === "DAD") || (from === "DAD" && to === "SGN")) duration = 90;
-            
-            let [h, m] = depTime.split(':').map(Number);
-            if (isNaN(h) || isNaN(m)) return { arrTime: "N/A", durText: "Chưa rõ" };
-
-            let totalMins = h * 60 + m + duration;
-            let arrH = Math.floor(totalMins / 60) % 24;
-            let arrM = totalMins % 60;
-            let durH = Math.floor(duration / 60);
-            let durM = duration % 60;
-
-            return {
-                arrTime: `${arrH.toString().padStart(2, '0')}:${arrM.toString().padStart(2, '0')}`,
-                durText: `${durH}h ${durM}phút`
-            };
-        }
+        
 
         function displayFlights(flights) {
             const resultsDiv = document.getElementById('results');
@@ -434,7 +416,9 @@ async function showClientDashboard() {
 
             flights.forEach(flight => {
                 const flightJson = JSON.stringify(flight).replace(/"/g, '&quot;');
-                const flightDetails = calculateFlightDetails(flight.from, flight.to, flight.departureTime);
+                
+                // 👉 BƯỚC 1: Đã xóa dòng gọi hàm tính toán giả lập calculateFlightDetails
+                
                 const card = document.createElement('div');
                 card.className = 'flight-card'; 
                 card.style.cssText = 'border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; display: flex; flex-wrap: wrap; background: white; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);';
@@ -452,11 +436,15 @@ async function showClientDashboard() {
                                     <div style="border-bottom: 1px dashed #005699; position: absolute; top: 50%; width: 100%; z-index: 0;"></div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-size: 26px; font-weight: normal; color: #005699;">${flightDetails.arrTime}</div>
+                                    <!-- 👉 BƯỚC 2: Gọi trực tiếp biến arrivalTime từ C# -->
+                                    <div style="font-size: 26px; font-weight: normal; color: #005699;">${flight.arrivalTime}</div>
                                     <div style="font-size: 16px; font-weight: bold; color: #444; margin-top: 5px;">${flight.to}</div>
                                 </div>
                             </div>
-                            <div style="color: #666; font-size: 14px; margin-top: 15px;">⏱️ Thời gian bay ${flightDetails.durText}</div>
+                            
+                            <!-- 👉 BƯỚC 3: Gọi trực tiếp biến duration từ C# -->
+                            <div style="color: #666; font-size: 14px; margin-top: 15px;">⏱️ Thời gian bay ${flight.duration}</div>
+                            
                             <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background-color: #f8f9fa; padding: 8px 12px; border-radius: 8px; border: 1px solid #eee;">
                                 <img src="${getAirlineLogo(flight.airline)}" alt="Logo" style="width: 50px; height: 50px; object-fit: contain; background: white; border-radius: 6px; padding: 2px; border: 1px solid #ddd;">
                                 <div>
